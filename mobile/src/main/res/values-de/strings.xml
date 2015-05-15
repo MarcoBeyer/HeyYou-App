@@ -1,0 +1,26 @@
+<resources>
+
+    <string name="Chats_describer_Headline">Chats</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="deleteChatMenuItem">Löschen</string>
+    <string name="localsearch_switch">Umkreissuche</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="SendButtonName">Senden</string>
+    <string name="metersAccuracy">m genau</string>
+    <string name="username" >Nutzername</string>
+    <string name="first_setup_userNameTitle">Wähle Nutzername</string>
+    <string name="first_setup_userName">Wähle deinen Nutzernamen</string>
+    <string name="ok">OK</string>
+    <string name="number_new_messages">neue Nachrichten</string>
+    <string name="prompt_email">Nutzername</string>
+    <string name="prompt_password">Passwort (optional)</string>
+    <string name="title_activity_login">Anmelden</string>
+    <string name="error_invalid_password">Das Passwort ist zu kurz</string>
+    <string name="error_invalid_email">Die Email-Adresse ist ungültig</string>
+    <string name="error_incorrect_password">Das Passwort ist falsch</string>
+    <string name="error_field_required">Dieses Feld ist erforderlich</string>
+    <string name="action_sign_in_short">Anmelden</string>
+    <string name="action_sign_in">Anmelden</string>
+    <string name="Registered_success">Registerung erfolgreich abgeschlossen</string>
+
+</resources>
