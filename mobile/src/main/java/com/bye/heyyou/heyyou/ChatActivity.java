@@ -35,6 +35,9 @@ public class ChatActivity extends Activity  implements Observer {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        if(savedInstanceState != null){
+            return;
+        }
     }
 
     @Override

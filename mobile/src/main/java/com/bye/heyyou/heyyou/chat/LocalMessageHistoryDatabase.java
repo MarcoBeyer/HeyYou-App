@@ -1,9 +1,11 @@
 package com.bye.heyyou.heyyou.chat;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -73,12 +75,13 @@ public class LocalMessageHistoryDatabase extends SQLiteOpenHelper {
 
     public void markAsSent(String messageId){
         String sql = "UPDATE OutgoingUserMessages SET Sent=1 WHERE messageID= "+messageId+"';";
-        Log.d("LocalMessageDB","Message als Sent markiert: " + messageId);
+        Log.d("LocalMessageDB", "Message als Sent markiert: " + messageId);
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(sql);
     }
 
     public List<UserMessage> getMessagesWithOppositeUser(String opponentUserID) throws NoNewMessageException {
+        opponentUserID=Uri.encode(opponentUserID);
         String sql = "SELECT * FROM IncomingUserMessages WHERE ToUserID='" + opponentUserID + "' OR FromUserID='" + opponentUserID + "';";
         String sql2 = "SELECT * FROM OutgoingUserMessages WHERE ToUserID='" + opponentUserID + "' OR FromUserID='" + opponentUserID + "';";
         List<UserMessage> messages = new ArrayList<>();
@@ -149,32 +152,43 @@ public class LocalMessageHistoryDatabase extends SQLiteOpenHelper {
 
     public void addNewOutgoingMessage(OutgoingUserMessage newMessage) {
         Log.d("LocalMessageHistoryDB", "new Message from " + newMessage.getFromUserId() + " with content " + newMessage.getContent());
-        String sql = "insert into OutgoingUserMessages(ToUserID,FromUserID,Content,MessageID,MessageType,SentTime,Sent,Read) values (" + "'" + newMessage.getToUserId() + "','" + newMessage.getFromUserId() + "','" + newMessage.getContent() + "','" + newMessage.getMessageId() + "','" + newMessage.getMessageType() + "','" + newMessage.getSentTime() + "','" + mapBool(newMessage.isRead()) + "','" + mapBool(newMessage.isSent()) + "');";
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL(sql);
+        ContentValues values = new ContentValues();
+        values.put("ToUserID", newMessage.getToUserId());
+        values.put("FromUserID", newMessage.getFromUserId());
+        values.put("Content", newMessage.getContent());
+        values.put("MessageID", newMessage.getMessageId());
+        values.put("MessageType", newMessage.getMessageType().toString());
+        values.put("SentTime", newMessage.getSentTime().toString());
+        values.put("Sent", mapBool(newMessage.isSent()));
+        values.put("Read", mapBool(newMessage.isRead()));
+        db.insert("OutgoingUserMessages", "", values);
     }
 
     public void addNewIncomingMessage(IncomingUserMessage newMessage) {
         Log.d("LocalMessageHistoryDB", "new Message from " + newMessage.getFromUserId() + " with content " + newMessage.getContent());
-        String sql = "insert into IncomingUserMessages(ToUserID,FromUserID,Content,MessageID,MessageType,SentTime,Read) values (" + "'" + newMessage.getToUserId() + "','" + newMessage.getFromUserId() + "','" + newMessage.getContent() + "','" + newMessage.getMessageId() + "','" + newMessage.getMessageType() + "','" + newMessage.getSentTime() + "','" + mapBool(newMessage.isRead()) + "');";
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL(sql);
+        ContentValues values = new ContentValues();
+        values.put("ToUserID", newMessage.getToUserId());
+        values.put("FromUserID", newMessage.getFromUserId());
+        values.put("Content", newMessage.getContent());
+        values.put("MessageID", newMessage.getMessageId());
+        values.put("MessageType", newMessage.getMessageType().toString());
+        values.put("SentTime", newMessage.getSentTime().toString());
+        values.put("Read", mapBool(newMessage.isRead()));
+        db.insert("IncomingUserMessages", "", values);
     }
 
     public void deleteChatWithUser(String opponentUserID) {
-        String sql = "DELETE FROM IncomingUserMessages WHERE ToUserID='" + opponentUserID + "' OR FromUserID='" + opponentUserID + "';";
-        String sql2 = "DELETE FROM OutgoingUserMessages WHERE ToUserID='" + opponentUserID + "' OR FromUserID='" + opponentUserID + "';";
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL(sql);
-        db.execSQL(sql2);
+        db.delete("IncomingUserMessages", "ToUserID=? OR FromUserID=?", new String[]{opponentUserID, opponentUserID});
+        db.delete("OutgoingUserMessages", "ToUserID=? OR FromUserID=?", new String[]{opponentUserID, opponentUserID});
     }
 
     public void deleteAllChats() {
-        String sql = "DELETE FROM IncomingUserMessages";
-        String sql2 = "DELETE FROM OutgoingUserMessages";
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL(sql);
-        db.execSQL(sql2);
+        db.delete("IncomingUserMessages",null,null);
+        db.delete("OutgoingUserMessages",null,null);
     }
 
     private int mapBool(boolean bool) {

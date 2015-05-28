@@ -50,19 +50,30 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         PreferenceManager.getDefaultSharedPreferences(this).edit().putString("userMessageServerUrl",userMessageServerUrl)
                 .putString("userLocationServerUrl", locationServerURL).apply();
         myUserID = PreferenceManager.getDefaultSharedPreferences(this).getString("userId", "user123456");
         password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", null);
         setContentView(R.layout.activity_main);
 
-        chatOverview =ChatOverviewFragment.newInstance(myUserID,password,userMessageServerUrl);
-        localUserFragment = LocalUserFragment.newInstance(myUserID,locationServerURL);
         chatIntent= new Intent(this,ChatActivity.class);
-        getFragmentManager().beginTransaction()
-                .add(R.id.localSearchViewFragmentContainer, localUserFragment)
-                .add(R.id.availableChatsFragmentContainer, chatOverview)
-                .commit();
+        if(savedInstanceState == null) {
+            chatOverview =ChatOverviewFragment.newInstance(myUserID,password,userMessageServerUrl);
+            localUserFragment = LocalUserFragment.newInstance(myUserID,locationServerURL);
+            getFragmentManager().beginTransaction()
+                    .add(R.id.localSearchViewFragmentContainer, localUserFragment)
+                    .add(R.id.availableChatsFragmentContainer, chatOverview)
+                    .commit();
+        }
+        else{
+            chatOverview=ChatOverviewFragment.newInstance(myUserID,password,userMessageServerUrl);
+            localUserFragment = LocalUserFragment.newInstance(myUserID,locationServerURL);
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.availableChatsFragmentContainer, chatOverview)
+                    .replace(R.id.localSearchViewFragmentContainer,localUserFragment )
+                    .commit();
+        }
     }
 
 /*    @Override
