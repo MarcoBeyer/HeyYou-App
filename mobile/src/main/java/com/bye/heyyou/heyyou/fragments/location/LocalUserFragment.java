@@ -75,7 +75,7 @@ public class LocalUserFragment extends Fragment implements Observer {
                 return;
             }
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+            //TODO alternatives
         }
 
         if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())==ConnectionResult.SUCCESS) {

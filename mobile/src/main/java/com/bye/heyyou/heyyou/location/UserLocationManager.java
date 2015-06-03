@@ -88,6 +88,9 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
         mLocationRequest.setInterval(intervalInMs);
         mLocationRequest.setFastestInterval(intervalInMs);
         fusedLocationProviderApi.requestLocationUpdates(googleApiClient, mLocationRequest, this);
+        if(fusedLocationProviderApi.getLastLocation(googleApiClient)!=null) {
+            onLocationChanged(fusedLocationProviderApi.getLastLocation(googleApiClient));
+        }
     }
 
     public void setLocationSendInterval(int intervalInMs) {
