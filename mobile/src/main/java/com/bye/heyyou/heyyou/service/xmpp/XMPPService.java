@@ -150,7 +150,7 @@ public class XMPPService extends Service {
                 new ChatManagerListener() {
                     @Override
                     public void chatCreated(Chat chat, boolean createdLocally) {
-                        if (!createdLocally)
+                        if (!createdLocally && chat!=null)
                             chat.addMessageListener(new newUserMessageListener());
                     }
                 });

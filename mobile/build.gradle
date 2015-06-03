@@ -15,8 +15,9 @@ android {
         applicationId "com.bye.heyyou.heyyou"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 11
-        versionName '1.9'
+        versionCode 13
+        versionName '0.26'
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {

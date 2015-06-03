@@ -1,10 +1,12 @@
 package com.bye.heyyou.heyyou.fragments.location;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,8 @@ import android.widget.TextView;
 import com.bye.heyyou.heyyou.R;
 import com.bye.heyyou.heyyou.service.location.LocationServiceConnection;
 import com.bye.heyyou.heyyou.user.LocalUser;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.util.List;
 import java.util.Observable;
@@ -55,20 +59,54 @@ public class LocalUserFragment extends Fragment implements Observer {
     }
 
     public void onLocalSearchSwitch(boolean isChecked) {
-        LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
-        if (isChecked) {
-            localSearchResultListView.setVisibility(View.VISIBLE);
-            userLocationManager.startGettingLocation();
-
-        } else {
-            Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
-            accuracyDisplay.setText(getString(R.string.localsearch_switch));
-            localSearchResultListView.removeAllViews();
-
-            localSearchResultListView.setVisibility(View.GONE);
-            userLocationManager.stopGettingLocation();
+        try {
+            if(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE.toString())==Settings.Secure.LOCATION_MODE_OFF){
+                new AlertDialog.Builder(getActivity())
+                .setTitle("Please activate Location")
+                        .setMessage("Please activate Location in Settings")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+                userLocationManager.stopGettingLocation();
+                ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
+                return;
+            }
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
         }
-    }
+
+        if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())==ConnectionResult.SUCCESS) {
+            LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
+            if (isChecked) {
+                localSearchResultListView.setVisibility(View.VISIBLE);
+                userLocationManager.startGettingLocation();
+
+            } else {
+                Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
+                accuracyDisplay.setText(getString(R.string.localsearch_switch));
+                localSearchResultListView.removeAllViews();
+
+                localSearchResultListView.setVisibility(View.GONE);
+                userLocationManager.stopGettingLocation();
+            }
+        }else{
+            GoogleApiAvailability.getInstance().getErrorDialog(getActivity(),GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity()),5);
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("No Google Play Services")
+                    .setMessage("No Google Play Services found or not active"+ GoogleApiAvailability.getInstance().getErrorString(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())))
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
+                    userLocationManager.stopGettingLocation();
+                    ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
+            }
+        }
 
     private void displayLocalUser() {
         Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);

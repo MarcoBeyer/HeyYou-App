@@ -1,6 +1,5 @@
 package com.bye.heyyou.heyyou.location;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
@@ -24,7 +23,6 @@ import java.util.Observer;
  * It also questions the LocationExternalDatabase for users in the near of the new Location
  */
 public class UserLocationManager extends Observable implements Observer, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
-    private Context context;
     private int accuracy = -1;
     private LocationExternalDatabase locationExternalDatabase;
     private List<LocalUser> localUsers = new ArrayList<LocalUser>();
@@ -32,10 +30,8 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
     private GoogleApiClient googleApiClient;
     private int intervalInMs = 120000;
     private LocationRequest mLocationRequest = LocationRequest.create();
-    ;
 
     public UserLocationManager(Context context, String userId, String databaseUrl) {
-        this.context = context;
         locationExternalDatabase = new LocationExternalDatabase(userId, databaseUrl);
         locationExternalDatabase.addObserver(this);
         googleApiClient = new GoogleApiClient.Builder(context)
@@ -110,10 +106,6 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        new AlertDialog.Builder(context)
-                .setTitle("No Google Play Services")
-                .setMessage("No Google Play Services found " + connectionResult.toString())
-                .show();
     }
 
     @Override
