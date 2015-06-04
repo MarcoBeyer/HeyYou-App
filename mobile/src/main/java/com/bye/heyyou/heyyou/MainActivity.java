@@ -25,7 +25,7 @@ public class MainActivity extends FragmentActivity {
     private Intent chatIntent;
 
     private String myUserID;
-    private String locationServerURL = "http://db.heyyouapp.net";
+    private String locationServerURL = "db.heyyouapp.net";
     private String userMessageServerUrl = "chat.heyyouapp.net";
     private String password;
     private ChatOverviewFragment chatOverview;

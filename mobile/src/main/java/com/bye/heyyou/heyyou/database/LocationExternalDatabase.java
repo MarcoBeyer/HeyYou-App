@@ -9,11 +9,14 @@ import com.bye.heyyou.heyyou.user.LocalUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,7 @@ public class LocationExternalDatabase extends ExternalDatabase {
     private String myUserID;
     private List<LocalUser>localUsers= new ArrayList<>();
     private GetLocalUsersTask getLocalUsersTask=new GetLocalUsersTask();
+    Socket socket;
 
     public LocationExternalDatabase(String myUserID,String databaseURL) {
         this.myUserID = myUserID;
@@ -56,32 +60,65 @@ public class LocationExternalDatabase extends ExternalDatabase {
     private class GetLocalUsersTask extends AsyncTask<UserLocation, Void, List<LocalUser>> {
 
         private List<LocalUser> getLocalUsers(UserLocation userLocation) throws GetLocalUsersFailedException, IOException {
-            List<LocalUser> localUsers = new ArrayList<>();
-            Connection connection = Jsoup.connect(databaseURL + "/getLocalUsers.php");
-            Log.d("LocationExternalDB","new Location sent to "+ databaseURL);
-            Document doc = connection
-                    .data("user_id", myUserID)
-                    .data("longitude", String.valueOf(userLocation.getLongitude()))
-                    .data("latitude", String.valueOf(userLocation.getLatitude()))
-                    .data("accuracy", String.valueOf(userLocation.getAccuracy()))
-                    .post();
-            if (connection.response().statusCode() != 200) {
-                throw new GetLocalUsersFailedException(connection.response().statusCode());
+            Log.d("LocationExternalDB", "new Location sent to " + databaseURL);
+            String ip = databaseURL;  //localhost
+            int port = 8489;
+
+            if(socket==null || !socket.isConnected() || socket.isClosed()) {
+                socket = new Socket(ip, port);  //verbindet sich mit Server
+                socket.setKeepAlive(true);
             }
-            String content = doc.body().text();
-            Log.d("LocationExternalDB", content);
-            JSONArray localUsersArray;
-            try {
-                localUsersArray = new JSONArray(content);
-            for (int i = 0; i<localUsersArray.length();i++){
-                JSONArray localUserArray = localUsersArray.getJSONArray(i);
-                localUsers.add(new LocalUser(localUserArray.get(0).toString(), Double.valueOf(localUserArray.get(1).toString()), Double.valueOf(localUserArray.get(2).toString())));
-            }
-            } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            sendLocation(socket, userLocation);
+            List<LocalUser> localUsers = readResponse(socket);
+            socket.close();
             return localUsers;
         }
+
+        private void sendLocation(Socket socket, UserLocation userLocation) throws IOException {
+            JSONObject location = new JSONObject();
+            String locationJSON = "";
+            try {
+                location.put("user_id",myUserID);
+                location.put("longitude",userLocation.getLongitude());
+                location.put("latitude", userLocation.getLatitude());
+                location.put("accuracy",userLocation.getAccuracy());
+                locationJSON = location.toString();
+                Log.d("LocationExternal","sending: "+locationJSON);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            PrintWriter printWriter =
+                    new PrintWriter(
+                            new OutputStreamWriter(
+                                    socket.getOutputStream()));
+            printWriter.print(locationJSON);
+            printWriter.flush();
+        }
+
+        private List<LocalUser> readResponse(Socket socket) throws IOException {
+            List<LocalUser>localUsers= new ArrayList<>();
+            BufferedReader bufferedReader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    socket.getInputStream()));
+            char[] buffer = new char[100];
+            //blockiert bis Nachricht empfangen
+            int anzahlZeichen = bufferedReader.read(buffer, 0, 100);
+            String nachricht = new String(buffer, 0, anzahlZeichen);
+            Log.d("LocationExternalDB", "server answers:"+nachricht);
+            JSONArray localUsersArray;
+            try {
+                localUsersArray = new JSONArray(nachricht);
+                for (int i = 0; i < localUsersArray.length(); i++) {
+                    JSONArray localUserArray = localUsersArray.getJSONArray(i);
+                    localUsers.add(new LocalUser(localUserArray.get(0).toString(), Double.valueOf(localUserArray.get(1).toString()), Double.valueOf(localUserArray.get(2).toString())));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return localUsers;
+        }
+
 
         @Override
         protected List<LocalUser> doInBackground(UserLocation... params) {
@@ -91,6 +128,7 @@ public class LocationExternalDatabase extends ExternalDatabase {
             } catch (GetLocalUsersFailedException e) {
                 return localUsers;
             } catch (IOException e) {
+                e.printStackTrace();
                 return localUsers;
             }
             return localUsers;
