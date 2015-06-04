@@ -1,14 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'marcobeyer'
-            storeFile file('E:/HeyYou-all/doc/Androidkeys')
-            keyPassword 'lolos126060'
-            storePassword 'lolos126060'
-        }
-    }
     compileSdkVersion 22
     buildToolsVersion '22.0.1'
     defaultConfig {
@@ -17,14 +9,11 @@ android {
         targetSdkVersion 22
         versionCode 14
         versionName '0.26'
-        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.config
         }
         debug {
-            signingConfig signingConfigs.config
         }
     }
     productFlavors {

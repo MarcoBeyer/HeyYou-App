@@ -59,54 +59,19 @@ public class LocalUserFragment extends Fragment implements Observer {
     }
 
     public void onLocalSearchSwitch(boolean isChecked) {
-        try {
-            if(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE.toString())==Settings.Secure.LOCATION_MODE_OFF){
-                new AlertDialog.Builder(getActivity())
-                .setTitle("Please activate Location")
-                        .setMessage("Please activate Location in Settings")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
+        LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
+        if (isChecked) {
+            //check if Location Tracking is on
+            if (!checkForLocationModeOn()||!checkForGooglePlayServices()) {
                 userLocationManager.stopGettingLocation();
                 ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
-                return;
+            }else{
+                startDisplayingLocalUsers();
             }
-        } catch (Settings.SettingNotFoundException e) {
-            //TODO alternatives
+        } else {
+            stopDisplayingLocalUsers();
         }
-
-        if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())==ConnectionResult.SUCCESS) {
-            LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
-            if (isChecked) {
-                localSearchResultListView.setVisibility(View.VISIBLE);
-                userLocationManager.startGettingLocation();
-
-            } else {
-                Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
-                accuracyDisplay.setText(getString(R.string.localsearch_switch));
-                localSearchResultListView.removeAllViews();
-
-                localSearchResultListView.setVisibility(View.GONE);
-                userLocationManager.stopGettingLocation();
-            }
-        }else{
-            GoogleApiAvailability.getInstance().getErrorDialog(getActivity(),GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity()),5);
-            new AlertDialog.Builder(getActivity())
-                    .setTitle("No Google Play Services")
-                    .setMessage("No Google Play Services found or not active"+ GoogleApiAvailability.getInstance().getErrorString(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .show();
-                    userLocationManager.stopGettingLocation();
-                    ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
-            }
-        }
+    }
 
     private void displayLocalUser() {
         Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
@@ -132,6 +97,58 @@ public class LocalUserFragment extends Fragment implements Observer {
         return settings.getBoolean("trackUser", false);
     }
 
+    public void startDisplayingLocalUsers(){
+        LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
+        localSearchResultListView.setVisibility(View.VISIBLE);
+        userLocationManager.startGettingLocation();
+    }
+
+    public void stopDisplayingLocalUsers(){
+        LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
+        Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
+        accuracyDisplay.setText(getString(R.string.localsearch_switch));
+        localSearchResultListView.removeAllViews();
+        localSearchResultListView.setVisibility(View.GONE);
+        userLocationManager.stopGettingLocation();
+    }
+
+    public boolean checkForLocationModeOn(){
+        try {
+            if(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE.toString())==Settings.Secure.LOCATION_MODE_OFF){
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("Please activate Location")
+                        .setMessage("Please activate Location in Settings")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+                return false;
+            }
+        } catch (Settings.SettingNotFoundException e) {
+            //TODO alternatives
+        }
+        return true;
+    }
+
+    public boolean checkForGooglePlayServices(){
+        if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())==ConnectionResult.SUCCESS){
+            return true;
+        }
+        GoogleApiAvailability.getInstance().getErrorDialog(getActivity(),GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity()),5);
+        new AlertDialog.Builder(getActivity())
+                .setTitle("No Google Play Services")
+                .setMessage("No Google Play Services found or not active"+ GoogleApiAvailability.getInstance().getErrorString(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                })
+                .show();
+        return false;
+    }
+
     @Override
     public void update(Observable observable, Object data) {
         getActivity().runOnUiThread(new Runnable() {
@@ -155,8 +172,13 @@ public class LocalUserFragment extends Fragment implements Observer {
     @Override
     public void onResume() {
         super.onResume();
-        userLocationManager.register();
-        userLocationManager.setLocationSendInterval(5000);
+        if(checkForGooglePlayServices()&&checkForLocationModeOn()) {
+            userLocationManager.register();
+            userLocationManager.setLocationSendInterval(5000);
+        }else{
+            userLocationManager.stopGettingLocation();
+            ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
+        }
     }
 
     @Override
