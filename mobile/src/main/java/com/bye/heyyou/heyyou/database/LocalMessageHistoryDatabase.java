@@ -1,4 +1,4 @@
-package com.bye.heyyou.heyyou.chat;
+package com.bye.heyyou.heyyou.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -74,10 +74,16 @@ public class LocalMessageHistoryDatabase extends SQLiteOpenHelper {
     }
 
     public void markAsSent(String messageId){
-        String sql = "UPDATE OutgoingUserMessages SET Sent=1 WHERE messageID= "+messageId+"';";
+        String sql = "UPDATE OutgoingUserMessages SET Sent=1 WHERE messageID= '"+messageId+"';";
         Log.d("LocalMessageDB", "Message als Sent markiert: " + messageId);
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(sql);
+    }
+
+    public List<OutgoingUserMessage> getNotSentMessages() {
+        String sql = "SELECT * FROM OutgoingUserMessages WHERE Sent=0;";
+        List<OutgoingUserMessage> outgoingUserMessages = parseOutgoingMessages(sql);
+        return outgoingUserMessages;
     }
 
     public List<UserMessage> getMessagesWithOppositeUser(String opponentUserID) throws NoNewMessageException {

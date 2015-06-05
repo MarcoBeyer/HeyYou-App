@@ -134,10 +134,12 @@ public class ChatActivity extends Activity  implements Observer {
 
     public void onSendButtonClick(View view) {
         TextView messageInputField = (TextView) findViewById(R.id.messageInputField);
-        String messageToSend = String.valueOf(messageInputField.getText());
-        messageInputField.setText("");
-        chatManager.sendMessage(opponentUserId, messageToSend, MessageTypes.TEXT);
-        displayChat();
+        if(!messageInputField.getText().toString().matches("\\s*$")) {
+            String messageToSend = String.valueOf(messageInputField.getText());
+            messageInputField.setText("");
+            chatManager.sendMessage(opponentUserId, messageToSend, MessageTypes.TEXT);
+            displayChat();
+        }
     }
 
     @Override

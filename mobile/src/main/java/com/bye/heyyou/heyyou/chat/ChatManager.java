@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import com.bye.heyyou.heyyou.database.LocalMessageHistoryDatabase;
 import com.bye.heyyou.heyyou.exceptions.ChatNotFoundException;
 import com.bye.heyyou.heyyou.exceptions.NoNewMessageException;
 import com.bye.heyyou.heyyou.message.MessageTypes;

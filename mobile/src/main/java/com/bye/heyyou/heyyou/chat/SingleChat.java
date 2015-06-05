@@ -19,11 +19,6 @@ public class SingleChat {
         this.opponentUser=opponentUser;
     }
 
-    //TODO implement
-    public List<UserMessage> getMessagesOrderedByTimeStamp() {
-        throw new UnsupportedOperationException();
-    }
-
     public void addMessage(UserMessage newMessage) {
         messages.add(newMessage);
     }

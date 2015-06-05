@@ -1,14 +1,19 @@
 package com.bye.heyyou.heyyou.service.xmpp;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.bye.heyyou.heyyou.chat.LocalMessageHistoryDatabase;
+import com.bye.heyyou.heyyou.database.LocalMessageHistoryDatabase;
 import com.bye.heyyou.heyyou.message.IncomingUserMessage;
 import com.bye.heyyou.heyyou.message.MessageTypes;
 import com.bye.heyyou.heyyou.message.OutgoingUserMessage;
@@ -23,6 +28,7 @@ import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
@@ -43,6 +49,9 @@ public class XMPPService extends Service {
     private final IBinder xmppServiceBinder = new XMPPServiceBinder();
     private ExecutorService xmppConnectionThreads;
     private MessageNotificationManager messageNotificationManager;
+    private boolean mBroadcastRegistered;
+    private ConnectivityChangeReceiver connectivityChangeReceiver;
+    private ConnectivityManager cm;
 
     private String getUserID() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
@@ -84,6 +93,7 @@ public class XMPPService extends Service {
     public void onCreate() {
         xmppConnectionThreads = Executors.newSingleThreadExecutor();
         messageNotificationManager = new MessageNotificationManager(this);
+        registerBroadcastReceiver();
     }
 
     @Override
@@ -140,6 +150,7 @@ public class XMPPService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregister();
         xmppConnectionThreads.shutdown();
     }
 
@@ -188,7 +199,48 @@ public class XMPPService extends Service {
         }
     }
 
-    public boolean isChatWithUserOpen(String opponentUserId) {
+    private void registerBroadcastReceiver(){
+        if(!mBroadcastRegistered) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+            intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
+            connectivityChangeReceiver = new ConnectivityChangeReceiver();
+            this.registerReceiver(connectivityChangeReceiver, intentFilter);
+            mBroadcastRegistered = true;
+        }
+    }
+
+    public void unregister(){
+        if (mBroadcastRegistered) {
+            this.unregisterReceiver(connectivityChangeReceiver);
+            mBroadcastRegistered=false;
+        }
+    }
+
+    public class ConnectivityChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            if(activeNetwork!=null && activeNetwork.isConnected()){
+                if(conn!=null) {
+                    if (conn.isConnected() && conn.isAuthenticated()) {
+                        xmppConnectionThreads.submit(new SendNotSentMessages());
+                    } else {
+                        xmppConnectionThreads.submit(new Connect());
+                        xmppConnectionThreads.submit(new Login());
+                    }
+                }
+            }else {
+                if(conn!=null) {
+                    conn.disconnect();
+                }
+            }
+        }
+    }
+
+
+    private boolean isChatWithUserOpen(String opponentUserId) {
         SharedPreferences settings = getSharedPreferences("active chat", MODE_PRIVATE);
         return settings.getString("ChatOpenWithUser", "").equals(opponentUserId);
     }
@@ -203,16 +255,19 @@ public class XMPPService extends Service {
     private class Login implements Callable<Boolean> {
         @Override
         public Boolean call() {
-            Log.d("XMPP", "login with Username " + getUserID());
             try {
                 if (conn.isConnected()) {
                     try {
                         conn.login();
+                        Log.d("XMPP", "Logged in");
+                        Presence presence = new Presence(Presence.Type.available);
+                        presence.setStatus("");
+                        conn.sendStanza(presence);
+                        setNewMessageListener();
                     } catch (InterruptedException e) {
                         Log.e("XMPP", "login interrupted");
                     }
-                    Log.d("XMPP", "Logged in");
-                    setNewMessageListener();
+
                 } else {
                     Log.e("XMPP", "not connected to " + getDbAddress() + ", no login");
                 }
@@ -278,7 +333,7 @@ public class XMPPService extends Service {
                 e.printStackTrace();
             }
             builder.setResource("HeyYouApp");
-            builder.setUsernameAndPassword(getUserID(), getPassword());
+            builder.setUsernameAndPassword(getUserID().toLowerCase(), getPassword());
             if (conn != null && conn.isConnected()) {
                 conn.disconnect();
             }
@@ -294,13 +349,13 @@ public class XMPPService extends Service {
         public void run() {
             try {
                 if (conn != null && conn.isConnected()) {
-                    conn.disconnect();
+                    return;
                 }
-                if (conn != null) {
+                if (conn != null && cm.getActiveNetworkInfo()!=null && cm.getActiveNetworkInfo().isConnected()) {
                     try {
                         conn.connect();
                     } catch (InterruptedException e) {
-                        Log.e("XMPP", "login interrupted");
+                        Log.e("XMPP", "connect interrupted");
                     }
                 }
                 ReconnectionManager.getInstanceFor(conn).enableAutomaticReconnection();
@@ -328,15 +383,15 @@ public class XMPPService extends Service {
             if (chatmanager == null) {
                 chatmanager = ChatManager.getInstanceFor(conn);
             }
-            Chat newChat = null;
+            Chat newChat;
             try {
                 newChat = chatmanager.createChat((JidWithLocalpart) JidCreate.from(newMessage.getToUserId(), getDbAddress(), ""), new newUserMessageListener());
             } catch (XmppStringprepException e) {
                 e.printStackTrace();
+                return;
             }
 
             if (newMessage.getMessageType() == MessageTypes.TEXT) {
-
                 try {
                     if (newMessage != null && newMessage.getContent() != null) {
                         newChat.sendMessage(newMessage.getContent());
@@ -349,6 +404,41 @@ public class XMPPService extends Service {
                     Log.e("XMPP", "send Message interrupted");
                 } catch (SmackException.NotConnectedException e) {
                     Log.e("XMPP Service", "Send Message failed not connected");
+                }
+            }
+        }
+    }
+
+    private class SendNotSentMessages implements Runnable {
+        @Override
+        public void run() {
+            if (chatmanager == null) {
+                chatmanager = ChatManager.getInstanceFor(conn);
+            }
+            LocalMessageHistoryDatabase localMessageHistoryDatabase = new LocalMessageHistoryDatabase(getBaseContext());
+            for(OutgoingUserMessage newMessage : localMessageHistoryDatabase.getNotSentMessages()) {
+                Chat newChat;
+                try {
+                    newChat = chatmanager.createChat((JidWithLocalpart) JidCreate.from(newMessage.getToUserId(), getDbAddress(), ""), new newUserMessageListener());
+                } catch (XmppStringprepException e) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                if (newMessage.getMessageType() == MessageTypes.TEXT) {
+                    try {
+                        if (newMessage != null && newMessage.getContent() != null) {
+                            newChat.sendMessage(newMessage.getContent());
+
+                            localMessageHistoryDatabase.markAsSent(newMessage.getMessageId());
+                            localMessageHistoryDatabase.close();
+                        }
+
+                    } catch (InterruptedException e) {
+                        Log.e("XMPP", "send Message interrupted");
+                    } catch (SmackException.NotConnectedException e) {
+                        Log.e("XMPP Service", "Send Message failed not connected");
+                    }
                 }
             }
         }

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.bye.heyyou.heyyou.MainActivity;
-import com.bye.heyyou.heyyou.chat.LocalMessageHistoryDatabase;
 import com.bye.heyyou.heyyou.exceptions.NoNewMessageException;
 import com.bye.heyyou.heyyou.message.IncomingUserMessage;
 import com.bye.heyyou.heyyou.message.MessageTypes;
