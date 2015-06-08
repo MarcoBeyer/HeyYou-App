@@ -178,7 +178,7 @@ public class HeyYouConnection {
                 }
                 try {
                     conn.login();
-                    Log.d("XMPP", "Logged in");
+                    Log.d("XMPP", "Logged in at "+host);
                     setNewMessageListener();
                     Roster.getInstanceFor(conn);
 
