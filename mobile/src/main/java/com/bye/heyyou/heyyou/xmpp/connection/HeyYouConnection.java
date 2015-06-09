@@ -121,24 +121,15 @@ public class HeyYouConnection {
             pm.registerPingFailedListener(new HeyYouPingFailedListener());
             rm = ReconnectionManager.getInstanceFor(conn);
             rm.enableAutomaticReconnection();
-
+            conn.addRequestAckPredicate(org.jivesoftware.smack.sm.predicates.ForEveryMessage.INSTANCE);
         }
 
         private class HeyYouPingFailedListener implements PingFailedListener {
             @Override
             public void pingFailed() {
                 conn.disconnect();
-                try {
-                    conn.connect();
-                } catch (SmackException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (XMPPException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                xmppConnectionThreads.submit(new Connect());
+
             }
         }
     }
@@ -278,6 +269,7 @@ public class HeyYouConnection {
                     try {
                         conn.setUseStreamManagement(true);
                         conn.setUseStreamManagementResumption(true);
+                        conn.setPreferredResumptionTime(1000000);
                         conn.connect();
                         Log.d("SmResumption", "possible:"+conn.isSmResumptionPossible());
                         Log.d("SmResumption", "available:"+conn.isSmAvailable());
