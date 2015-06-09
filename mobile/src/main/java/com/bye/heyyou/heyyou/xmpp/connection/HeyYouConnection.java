@@ -13,6 +13,7 @@ import com.bye.heyyou.heyyou.message.MessageTypes;
 import com.bye.heyyou.heyyou.message.OutgoingUserMessage;
 import com.bye.heyyou.heyyou.xmpp.connection.listener.newUserMessageListener;
 
+import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.Chat;
@@ -22,6 +23,8 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jivesoftware.smackx.ping.PingFailedListener;
+import org.jivesoftware.smackx.ping.PingManager;
 import org.jxmpp.jid.DomainBareJid;
 import org.jxmpp.jid.JidWithLocalpart;
 import org.jxmpp.jid.impl.JidCreate;
@@ -34,6 +37,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HeyYouConnection {
+
+    static{
+        XMPPTCPConnection.setUseStreamManagementDefault(true);
+        XMPPTCPConnection.setUseStreamManagementResumptiodDefault(true);
+    }
+
     private Context context;
     private XMPPTCPConnection conn;
     private ChatManager chatmanager;
@@ -41,9 +50,11 @@ public class HeyYouConnection {
     private boolean mBroadcastRegistered;
     private ConnectivityChangeReceiver connectivityChangeReceiver;
     private ConnectivityManager cm;
+    private PingManager pm;
     private DomainBareJid host;
     private String userName;
     private String password;
+    private ReconnectionManager rm;
 
     public HeyYouConnection(Context context,XMPPTCPConnectionConfiguration config){
         this.context=context;
@@ -57,9 +68,7 @@ public class HeyYouConnection {
     }
 
     public void close(){
-        if(conn.isConnected()) {
-            conn.disconnect();
-        }
+        conn.disconnect();
         unregister();
         xmppConnectionThreads.shutdown();
     }
@@ -107,6 +116,30 @@ public class HeyYouConnection {
             }
             Log.d("XMPP","Setup connection");
             conn = new XMPPTCPConnection(config);
+            pm = PingManager.getInstanceFor(conn);
+            pm.setPingInterval(100000);
+            pm.registerPingFailedListener(new HeyYouPingFailedListener());
+            rm = ReconnectionManager.getInstanceFor(conn);
+            rm.enableAutomaticReconnection();
+
+        }
+
+        private class HeyYouPingFailedListener implements PingFailedListener {
+            @Override
+            public void pingFailed() {
+                conn.disconnect();
+                try {
+                    conn.connect();
+                } catch (SmackException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XMPPException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -243,11 +276,13 @@ public class HeyYouConnection {
                 }
                 if (conn != null && cm.getActiveNetworkInfo()!=null && cm.getActiveNetworkInfo().isConnected()) {
                     try {
+                        conn.setUseStreamManagement(true);
+                        conn.setUseStreamManagementResumption(true);
                         conn.connect();
                         Log.d("SmResumption", "possible:"+conn.isSmResumptionPossible());
                         Log.d("SmResumption", "available:"+conn.isSmAvailable());
                         Log.d("SmResumption", "enabled:"+conn.isSmEnabled());
-                        return;
+                        Log.d("SmResumption", "was resumed:"+conn.streamWasResumed());
                     } catch (InterruptedException e) {
                         Log.e("XMPP", "connect interrupted");
                     }

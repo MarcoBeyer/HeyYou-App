@@ -1,10 +1,9 @@
 package com.bye.heyyou.heyyou.fragments.chat;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -36,7 +35,7 @@ public class ChatOverviewFragment extends Fragment implements Observer {
     private String userMessageServerUrl;
     private Intent chatIntent;
     private ChatManager chatManager;
-    private View chatView;
+
     private String selectedUserIdChatRow;
 
     /**
@@ -70,7 +69,7 @@ public class ChatOverviewFragment extends Fragment implements Observer {
     @Override
     public void onStop(){
         super.onStop();
-        chatManager.unregister();
+        chatManager.pause();
     }
 
     @Override
@@ -99,7 +98,7 @@ public class ChatOverviewFragment extends Fragment implements Observer {
         new MessageNotificationManager(super.getActivity()).resetNumberNewMessages();
         new MessageNotificationManager(super.getActivity()).deleteNotification();
         chatManager.resume();
-        displayActiveChats();
+        new DisplayActiveChats().execute();
     }
 
 
@@ -110,12 +109,7 @@ public class ChatOverviewFragment extends Fragment implements Observer {
 
     @Override
     public void update(Observable observable, Object data) {
-        super.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                displayActiveChats();
-            }
-        });
+        new DisplayActiveChats().execute();
     }
 
 
@@ -124,30 +118,51 @@ displays all current Chats from the User that will be returned from the ChatMana
  */
     public void displayActiveChats() {
         LayoutInflater inflater = LayoutInflater.from(getActivity());
-        final LinearLayout availableChatsViewContainer = (LinearLayout) chatView.findViewById(R.id.availableChatsContainer);
+        final LinearLayout availableChatsViewContainer = (LinearLayout) getView().findViewById(R.id.availableChatsContainer);
         for (
-                SingleChat chat : chatManager.getActiveChats()) {
+                final SingleChat chat : chatManager.getActiveChats()) {
             try {
-                View chatRowView = findChatRow(chat.getOpponentUserID(), availableChatsViewContainer);
-                TextView messagePreview = (TextView) chatRowView.findViewById(R.id.messagePreview);
+                final View chatRowView = findChatRow(chat.getOpponentUserID(), availableChatsViewContainer);
                 if (chat.getMessages().size() > 1) {
-                    messagePreview.setText(chat.getMessages().get(chat.getMessages().size() - 1).getContent());
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView messagePreview = (TextView) chatRowView.findViewById(R.id.messagePreview);
+                            messagePreview.setText(chat.getMessages().get(chat.getMessages().size() - 1).getContent());
+                        }
+                    });
+
                 }
             } catch (ChatNotFoundException e) {
-                View chatRowView = inflater.inflate(R.layout.chatrow, availableChatsViewContainer, false);
-                TextView headline = (TextView) chatRowView.findViewById(R.id.opponentUserID);
-                TextView messagePreview = (TextView) chatRowView.findViewById(R.id.messagePreview);
-                headline.setText(chat.getOpponentUserID());
-                UserMessage lastMessage = chat.getMessages().get(chat.getMessages().size() - 1);
-                if (lastMessage.getMessageType() == MessageTypes.TEXT) {
-                    messagePreview.setText(lastMessage.getContent());
-                }
-                chatRowView.setTag(chat.getOpponentUserID());
-                registerForContextMenu(chatRowView);
-                availableChatsViewContainer.addView(chatRowView);
+                final View chatRowView = inflater.inflate(R.layout.chatrow, availableChatsViewContainer, false);
+                final TextView headline = (TextView) chatRowView.findViewById(R.id.opponentUserID);
+                final TextView messagePreview = (TextView) chatRowView.findViewById(R.id.messagePreview);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        headline.setText(chat.getOpponentUserID());
+                        UserMessage lastMessage = chat.getMessages().get(chat.getMessages().size() - 1);
+                        if (lastMessage.getMessageType() == MessageTypes.TEXT) {
+                            messagePreview.setText(lastMessage.getContent());
+                        }
+                        chatRowView.setTag(chat.getOpponentUserID());
+                        registerForContextMenu(chatRowView);
+                        availableChatsViewContainer.addView(chatRowView);
+                    }
+                });
+
             }
         }
     }
+
+    private class DisplayActiveChats extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            displayActiveChats();
+            return null;
+        }
+    }
+
 
     public View findChatRow(String userId, View availableChatsViewContainer) throws ChatNotFoundException {
         View chatRowView = availableChatsViewContainer.findViewWithTag(userId);
@@ -160,8 +175,7 @@ displays all current Chats from the User that will be returned from the ChatMana
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        chatView = inflater.inflate(R.layout.fragment_chat_overview, container, false);
-        displayActiveChats();
+        View chatView = inflater.inflate(R.layout.fragment_chat_overview, container, false);
         return chatView;
     }
 
@@ -188,7 +202,7 @@ displays all current Chats from the User that will be returned from the ChatMana
             case R.id.deleteChatMenuItem:
                 chatManager.deleteChatWithUserID(selectedUserIdChatRow);
                 try {
-                    final LinearLayout availableChatsViewContainer = (LinearLayout) chatView.findViewById(R.id.availableChatsContainer);
+                    final LinearLayout availableChatsViewContainer = (LinearLayout) getView().findViewById(R.id.availableChatsContainer);
                     View chatRowView = findChatRow(selectedUserIdChatRow, availableChatsViewContainer);
                     availableChatsViewContainer.removeView(chatRowView);
                 } catch (ChatNotFoundException e1) {

@@ -132,8 +132,7 @@ public class XMPPService extends Service {
         if(conn!=null) {
             conn.close();
         }
-        XMPPTCPConnection.setUseStreamManagementDefault(true);
-        XMPPTCPConnection.setUseStreamManagementResumptiodDefault(true);
+
         XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder();
         builder.setHost(getDbAddress());
         builder.setPort(5222);
