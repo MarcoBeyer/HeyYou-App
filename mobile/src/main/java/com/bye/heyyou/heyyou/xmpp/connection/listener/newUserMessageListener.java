@@ -33,7 +33,7 @@ public class newUserMessageListener implements ChatMessageListener{
             LocalMessageHistoryDatabase localMessageHistoryDatabase = new LocalMessageHistoryDatabase(context);
             java.util.Date utilDate = new java.util.Date();
             Timestamp actualSqlDate = new Timestamp(utilDate.getTime());
-            IncomingUserMessage incomingUserMessage = new IncomingUserMessage(String.valueOf(localMessageHistoryDatabase.generateNewMessageID()), message.getFrom().maybeGetLocalpart().toString(), message.getTo().maybeGetLocalpart().toString(), message.getBody(), MessageTypes.TEXT, actualSqlDate, false);
+            IncomingUserMessage incomingUserMessage = new IncomingUserMessage(String.valueOf(localMessageHistoryDatabase.generateNewMessageID()), message.getFrom().getLocalpartOrNull().toString(), message.getTo().getLocalpartOrNull().toString(), message.getBody(), MessageTypes.TEXT, actualSqlDate, false);
             localMessageHistoryDatabase.addNewIncomingMessage(incomingUserMessage);
             localMessageHistoryDatabase.close();
             notifyNewMessage(message);
@@ -43,14 +43,14 @@ public class newUserMessageListener implements ChatMessageListener{
     }
 
     private void notifyNewMessage(Message message) {
-        if (!isChatWithUserOpen(message.getFrom().maybeGetLocalpart().toString())) {
+        if (!isChatWithUserOpen(message.getFrom().getLocalpartOrNull().toString())) {
             messageNotificationManager.increaseNumberNewMessages();
             messageNotificationManager.showNewMessage(message);
         }
     }
 
     private boolean isChatWithUserOpen(String opponentUserId) {
-        SharedPreferences settings = context.getSharedPreferences("active chat", context.MODE_PRIVATE);
+        SharedPreferences settings = context.getSharedPreferences("active chat", Context.MODE_PRIVATE);
         return settings.getString("ChatOpenWithUser", "").equals(opponentUserId);
     }
 

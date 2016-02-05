@@ -12,9 +12,9 @@ import com.bye.heyyou.heyyou.message.OutgoingUserMessage;
 import com.bye.heyyou.heyyou.notifications.MessageNotificationManager;
 import com.bye.heyyou.heyyou.xmpp.connection.HeyYouConnection;
 
-import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.util.JidUtil;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 public class XMPPService extends Service {
@@ -24,7 +24,7 @@ public class XMPPService extends Service {
 
     private String getUserID() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
-        return settings.getString("userID", null);
+        return settings.getString("userID", "");
     }
 
     private void setUserID(String userID) {
@@ -36,7 +36,7 @@ public class XMPPService extends Service {
 
     private String getPassword() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
-        return settings.getString("password", null);
+        return settings.getString("password", "");
     }
 
     private void setPassword(String password) {
@@ -48,7 +48,7 @@ public class XMPPService extends Service {
 
     private String getDbAddress() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
-        return settings.getString("dbAddress", null);
+        return settings.getString("dbAddress", "");
     }
 
     private void setDbAddress(String dbAddress) {
@@ -71,40 +71,34 @@ public class XMPPService extends Service {
         if (intent != null) {
             extras = intent.getExtras();
             if (extras != null) {
-                if (extras.getString("password") != null) {
-                    if (!extras.getString("password").equals(getPassword())) {
-                        setPassword(extras.getString("password"));
-                        mChanged = true;
-                    }
+                if (!getPassword().equals(extras.getString("password"))) {
+                    setPassword(extras.getString("password"));
+                    mChanged = true;
                 }
-                if (extras.getString("userID") != null) {
-                    if (!extras.getString("userID").equals(getUserID())) {
-                        setUserID(extras.getString("userID"));
-                        mChanged = true;
-                    }
+                if (!getUserID().equals(extras.getString("userID"))) {
+                    setUserID(extras.getString("userID"));
+                    mChanged = true;
                 }
-
-                if (extras.getString("dbAddress") != null) {
-                    if (!extras.getString("dbAddress").equals(getDbAddress())) {
-                        setDbAddress(extras.getString("dbAddress"));
-                        mChanged = true;
-                    }
+                if (!getDbAddress().equals(extras.getString("dbAddress"))) {
+                    setDbAddress(extras.getString("dbAddress"));
+                    mChanged = true;
                 }
             }
         }
 
-        if (getPassword() != null && getUserID() != null && getDbAddress() != null) {
-            Log.d("Service", "Service started");
-            if (mChanged) {
-                setupConnection();
-                conn.login();
-            }
-            else {
-                Log.d("XMPP", "Connect and login");
-                conn.login();
-            }
-        } else
-            Log.e("XMPPService", "no login credentials supplied");
+        if(getPassword().equals("") || getUserID().equals("") || getDbAddress().equals("")){
+            return START_STICKY;
+        }
+
+        Log.d("Service", "Service started");
+        if (mChanged) {
+            setupConnection();
+            conn.login();
+        }
+        else {
+            Log.d("XMPP", "Connect and login");
+            conn.login();
+        }
         return START_STICKY;
     }
 
@@ -128,9 +122,12 @@ public class XMPPService extends Service {
         return false;
     }
 
-    public void setupConnection() {
+    private void setupConnection() {
         if(conn!=null) {
             conn.close();
+        }
+        if(getPassword().equals("") || getUserID().equals("") || getDbAddress().equals("")){
+            return;
         }
 
         XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder();
@@ -138,11 +135,12 @@ public class XMPPService extends Service {
         builder.setPort(5222);
         builder.setSendPresence(true);
         try {
-            builder.setServiceName(JidCreate.domainBareFrom(getDbAddress()));
+            builder.setXmppDomain(JidCreate.domainBareFrom(getDbAddress()));
+            builder.setResource("HeyYouApp");
         } catch (XmppStringprepException e) {
             e.printStackTrace();
+            return;
         }
-        builder.setResource("HeyYouApp");
         builder.setUsernameAndPassword(getUserID().toLowerCase(), getPassword());
         conn = new HeyYouConnection(getBaseContext(), builder.build());
     }

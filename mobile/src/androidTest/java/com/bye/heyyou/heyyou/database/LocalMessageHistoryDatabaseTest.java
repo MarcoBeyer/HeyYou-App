@@ -32,7 +32,7 @@ public class LocalMessageHistoryDatabaseTest extends ActivityInstrumentationTest
     }
 
     public void testGetMessages() {
-        List<UserMessage> actual = new ArrayList<UserMessage>();
+        List<UserMessage> actual = new ArrayList<>();
         db.deleteChatWithUser("usertest2");
         java.util.Date utilDate = new java.util.Date();
         Timestamp actualSqlDate = new Timestamp(utilDate.getTime());

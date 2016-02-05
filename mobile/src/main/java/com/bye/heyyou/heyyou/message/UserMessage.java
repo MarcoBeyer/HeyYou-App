@@ -3,13 +3,13 @@ package com.bye.heyyou.heyyou.message;
 import java.sql.Timestamp;
 
 public abstract class UserMessage {
-    protected String fromUserID;
-    protected String toUserId;
-    protected String content;
-    protected MessageTypes messageType;
-    protected Timestamp sentTime;
-    protected String messageId;
-    protected boolean read;
+    private String fromUserID;
+    private String toUserId;
+    private String content;
+    private MessageTypes messageType;
+    private Timestamp sentTime;
+    private String messageId;
+    private boolean read;
 
     /**
      *
@@ -19,7 +19,7 @@ public abstract class UserMessage {
      * @param messageType
      * @param sentTime
      */
-    public UserMessage(String messageId,String fromUserID,String toUserID,String content,MessageTypes messageType, Timestamp sentTime, boolean read){
+    UserMessage(String messageId, String fromUserID, String toUserID, String content, MessageTypes messageType, Timestamp sentTime, boolean read){
         this.fromUserID=fromUserID;
         this.toUserId=toUserID;
         this.content=content;

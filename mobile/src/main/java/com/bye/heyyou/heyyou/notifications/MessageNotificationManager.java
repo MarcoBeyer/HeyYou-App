@@ -19,7 +19,7 @@ public class MessageNotificationManager {
      this.context=context;
      }
 
-    public int getNumberNewMessages() {
+    private int getNumberNewMessages() {
         SharedPreferences settings = context.getSharedPreferences("messages", Context.MODE_PRIVATE);
         return settings.getInt("numberNewMessages", 0);
     }
@@ -70,6 +70,6 @@ public class MessageNotificationManager {
         mBuilder.setContentIntent(resultPendingIntent);
         NotificationManager mNotifyMgr =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotifyMgr.notify(001, mBuilder.build());
+        mNotifyMgr.notify(1, mBuilder.build());
     }
 }

@@ -116,7 +116,7 @@ public class ChatOverviewFragment extends Fragment implements Observer {
     /*
 displays all current Chats from the User that will be returned from the ChatManager. The Chats have to be stored in the local Database
  */
-    public void displayActiveChats() {
+    private void displayActiveChats() {
         LayoutInflater inflater = LayoutInflater.from(getActivity());
         final LinearLayout availableChatsViewContainer = (LinearLayout) getView().findViewById(R.id.availableChatsContainer);
         for (
@@ -164,7 +164,7 @@ displays all current Chats from the User that will be returned from the ChatMana
     }
 
 
-    public View findChatRow(String userId, View availableChatsViewContainer) throws ChatNotFoundException {
+    private View findChatRow(String userId, View availableChatsViewContainer) throws ChatNotFoundException {
         View chatRowView = availableChatsViewContainer.findViewWithTag(userId);
         if (chatRowView != null) {
             return chatRowView;
@@ -175,8 +175,7 @@ displays all current Chats from the User that will be returned from the ChatMana
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View chatView = inflater.inflate(R.layout.fragment_chat_overview, container, false);
-        return chatView;
+        return inflater.inflate(R.layout.fragment_chat_overview, container, false);
     }
 
     public void onChatClick(View view) {

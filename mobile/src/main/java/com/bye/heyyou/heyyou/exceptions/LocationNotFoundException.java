@@ -1,4 +1,4 @@
 package com.bye.heyyou.heyyou.exceptions;
 
-public class LocationNotFoundException extends Exception {
+class LocationNotFoundException extends Exception {
 }

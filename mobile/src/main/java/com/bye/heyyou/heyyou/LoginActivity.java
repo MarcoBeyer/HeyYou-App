@@ -108,7 +108,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    public void attemptLogin() {
+    private void attemptLogin() {
         if (mAuthTask != null) {
             return;
         }
@@ -156,7 +156,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         }
     }
 
-    public void attemptRegister() {
+    private void attemptRegister() {
         if (mRegisterTask != null) {
             return;
         }
@@ -205,7 +205,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     private boolean isEmailValid(String email) {
-        return !email.equals("") || email != null;
+        return !"".equals(email);
     }
 
     private boolean isPasswordValid(String password) {
@@ -216,7 +216,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
      * Shows the progress UI and hides the login form.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    public void showProgress(final boolean show) {
+    private void showProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
@@ -366,9 +366,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            boolean registered = false;
-            registered = xmppServiceConnection.setUsernamePasswordAndRegister(mEmail, mPassword);
-            return registered;
+            return xmppServiceConnection.setUsernamePasswordAndRegister(mEmail, mPassword);
         }
 
         @Override

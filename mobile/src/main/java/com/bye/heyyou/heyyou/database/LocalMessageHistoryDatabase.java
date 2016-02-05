@@ -82,8 +82,7 @@ public class LocalMessageHistoryDatabase extends SQLiteOpenHelper {
 
     public List<OutgoingUserMessage> getNotSentMessages() {
         String sql = "SELECT * FROM OutgoingUserMessages WHERE Sent=0;";
-        List<OutgoingUserMessage> outgoingUserMessages = parseOutgoingMessages(sql);
-        return outgoingUserMessages;
+        return parseOutgoingMessages(sql);
     }
 
     public List<UserMessage> getMessagesWithOppositeUser(String opponentUserID) throws NoNewMessageException {

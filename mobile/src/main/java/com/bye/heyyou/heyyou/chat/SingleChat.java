@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SingleChat {
-    private List<UserMessage> messages=new ArrayList<UserMessage>();
+    private List<UserMessage> messages= new ArrayList<>();
     private User opponentUser;
 
-    protected SingleChat(User opponentUser){
+    SingleChat(User opponentUser){
         this.opponentUser=opponentUser;
     }
 

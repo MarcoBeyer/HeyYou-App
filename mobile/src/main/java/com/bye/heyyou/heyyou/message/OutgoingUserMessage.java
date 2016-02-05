@@ -4,7 +4,7 @@ package com.bye.heyyou.heyyou.message;
 import java.sql.Timestamp;
 
 public class OutgoingUserMessage extends UserMessage {
-    protected boolean sent;
+    private boolean sent;
 
     public OutgoingUserMessage(String messageId,String fromUserID,String toUserID,String content,MessageTypes messageType, Timestamp sentTime, boolean read, boolean sent){
         super(messageId,fromUserID,toUserID,content,messageType,sentTime,read);

@@ -26,7 +26,6 @@ import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jivesoftware.smackx.ping.PingFailedListener;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.jxmpp.jid.DomainBareJid;
-import org.jxmpp.jid.JidWithLocalpart;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
@@ -40,7 +39,7 @@ public class HeyYouConnection {
 
     static{
         XMPPTCPConnection.setUseStreamManagementDefault(true);
-        XMPPTCPConnection.setUseStreamManagementResumptiodDefault(true);
+        XMPPTCPConnection.setUseStreamManagementResumptionDefault(true);
     }
 
     private Context context;
@@ -62,7 +61,7 @@ public class HeyYouConnection {
         xmppConnectionThreads.submit(new Setup(config));
         xmppConnectionThreads.submit(new Connect());
         userName = config.getUsername().toString();
-        host = config.getServiceName();
+        host = config.getXMPPServiceDomain();
         password = config.getPassword();
         registerBroadcastReceiver();
     }
@@ -236,7 +235,7 @@ public class HeyYouConnection {
             }
             try {
                 AccountManager accountManager = AccountManager.getInstance(conn);
-                accountManager.createAccount(userName, password);
+                accountManager.createAccount(JidCreate.from(userName, host, "").getLocalpartOrNull(), password);
             } catch (XMPPException.XMPPErrorException e) {
                 e.printStackTrace();
                 return false;
@@ -249,6 +248,8 @@ public class HeyYouConnection {
             } catch (SmackException.NoResponseException e) {
                 e.printStackTrace();
                 return false;
+            } catch (XmppStringprepException e) {
+                e.printStackTrace();
             }
             return true;
         }
@@ -304,7 +305,7 @@ public class HeyYouConnection {
             }
             Chat newChat;
             try {
-                newChat = chatmanager.createChat((JidWithLocalpart) JidCreate.from(newMessage.getToUserId(), host, ""), new newUserMessageListener(context));
+                newChat = chatmanager.createChat( JidCreate.from(newMessage.getToUserId(), host, "").asEntityFullJidIfPossible(), new newUserMessageListener(context));
             } catch (XmppStringprepException e) {
                 e.printStackTrace();
                 return;
@@ -338,7 +339,7 @@ public class HeyYouConnection {
             for(OutgoingUserMessage newMessage : localMessageHistoryDatabase.getNotSentMessages()) {
                 Chat newChat;
                 try {
-                    newChat = chatmanager.createChat((JidWithLocalpart) JidCreate.from(newMessage.getToUserId(), host, ""), new newUserMessageListener(context));
+                    newChat = chatmanager.createChat( JidCreate.from(newMessage.getToUserId(), host, "").asEntityFullJidIfPossible(), new newUserMessageListener(context));
                 } catch (XmppStringprepException e) {
                     e.printStackTrace();
                     return;

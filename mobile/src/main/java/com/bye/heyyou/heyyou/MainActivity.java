@@ -1,22 +1,12 @@
 package com.bye.heyyou.heyyou;
 
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentActivity;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 
-import com.bye.heyyou.heyyou.exceptions.ChatNotFoundException;
 import com.bye.heyyou.heyyou.fragments.chat.ChatOverviewFragment;
 import com.bye.heyyou.heyyou.fragments.location.LocalUserFragment;
 

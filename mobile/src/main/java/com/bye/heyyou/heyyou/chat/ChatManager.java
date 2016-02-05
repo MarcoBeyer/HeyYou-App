@@ -144,7 +144,7 @@ public class ChatManager extends Observable {
         sendMessage(newMessage);
     }
 
-    public void sendMessage(OutgoingUserMessage userMessage) {
+    private void sendMessage(OutgoingUserMessage userMessage) {
         localMessageHistoryDatabase.addNewOutgoingMessage(userMessage);
         //add Message to current Chat
         addMessage(userMessage);

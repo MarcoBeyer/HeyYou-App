@@ -25,7 +25,7 @@ public class LocationExternalDatabase extends ExternalDatabase {
     private String myUserID;
     private List<LocalUser>localUsers= new ArrayList<>();
     private GetLocalUsersTask getLocalUsersTask=new GetLocalUsersTask();
-    Socket socket;
+    private Socket socket;
 
     public LocationExternalDatabase(String myUserID,String databaseURL) {
         this.myUserID = myUserID;
@@ -59,7 +59,7 @@ public class LocationExternalDatabase extends ExternalDatabase {
 
     private class GetLocalUsersTask extends AsyncTask<UserLocation, Void, List<LocalUser>> {
 
-        private List<LocalUser> getLocalUsers(UserLocation userLocation) throws GetLocalUsersFailedException, IOException {
+        private List<LocalUser> getLocalUsers(UserLocation userLocation) throws IOException {
             Log.d("LocationExternalDB", "new Location sent to " + databaseURL);
             String ip = databaseURL;  //localhost
             int port = 8489;
@@ -125,8 +125,6 @@ public class LocationExternalDatabase extends ExternalDatabase {
             List<LocalUser>localUsers=new ArrayList<>();
             try {
                 localUsers=getLocalUsers(params[0]);
-            } catch (GetLocalUsersFailedException e) {
-                return localUsers;
             } catch (IOException e) {
                 e.printStackTrace();
                 return localUsers;

@@ -58,8 +58,7 @@ public class LocalUserFragment extends Fragment implements Observer {
         // Required empty public constructor
     }
 
-    public void onLocalSearchSwitch(boolean isChecked) {
-        LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
+    private void onLocalSearchSwitch(boolean isChecked) {
         if (isChecked) {
             //check if Location Tracking is on
             if (!checkForLocationModeOn()||!checkForGooglePlayServices()) {
@@ -97,13 +96,13 @@ public class LocalUserFragment extends Fragment implements Observer {
         return settings.getBoolean("trackUser", false);
     }
 
-    public void startDisplayingLocalUsers(){
+    private void startDisplayingLocalUsers(){
         LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
         localSearchResultListView.setVisibility(View.VISIBLE);
         userLocationManager.startGettingLocation();
     }
 
-    public void stopDisplayingLocalUsers(){
+    private void stopDisplayingLocalUsers(){
         LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
         Switch accuracyDisplay = (Switch) localUserView.findViewById(R.id.localSearchSwitch);
         accuracyDisplay.setText(getString(R.string.localsearch_switch));
@@ -112,9 +111,9 @@ public class LocalUserFragment extends Fragment implements Observer {
         userLocationManager.stopGettingLocation();
     }
 
-    public boolean checkForLocationModeOn(){
+    private boolean checkForLocationModeOn(){
         try {
-            if(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE.toString())==Settings.Secure.LOCATION_MODE_OFF){
+            if(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE)==Settings.Secure.LOCATION_MODE_OFF){
                 new AlertDialog.Builder(getActivity())
                         .setTitle("Please activate Location")
                         .setMessage("Please activate Location in Settings")
@@ -132,7 +131,7 @@ public class LocalUserFragment extends Fragment implements Observer {
         return true;
     }
 
-    public boolean checkForGooglePlayServices(){
+    private boolean checkForGooglePlayServices(){
         if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivity())==ConnectionResult.SUCCESS){
             return true;
         }

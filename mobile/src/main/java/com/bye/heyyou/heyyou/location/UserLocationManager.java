@@ -25,7 +25,7 @@ import java.util.Observer;
 public class UserLocationManager extends Observable implements Observer, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
     private int accuracy = -1;
     private LocationExternalDatabase locationExternalDatabase;
-    private List<LocalUser> localUsers = new ArrayList<LocalUser>();
+    private List<LocalUser> localUsers = new ArrayList<>();
     private FusedLocationProviderApi fusedLocationProviderApi = LocationServices.FusedLocationApi;
     private GoogleApiClient googleApiClient;
     private int intervalInMs = 120000;
