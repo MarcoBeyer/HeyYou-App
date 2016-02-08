@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_id": "norse-objective-761",
+    "project_number": "183412760482",
+    "name": "HeyYou"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183412760482:android:f86cd0cbf465fa7f",
+        "client_id": "android:com.bye.heyyou.heyyou",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.bye.heyyou.heyyou"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "183412760482-kb48im5drcvep68mvafql1ksbnda9uod.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bye.heyyou.heyyou",
+            "certificate_hash": "0B277866A2C949B7109F9662C03479F3F289615C"
+          }
+        },
+        {
+          "client_id": "183412760482-mr32uetq2e70isdoebtt2as9hm7pf28l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 2,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
