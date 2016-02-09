@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -60,7 +61,7 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        String messageDBAddress = PreferenceManager.getDefaultSharedPreferences(getBaseContext()).getString("userMessageServerUrl", null);
+        String messageDBAddress = getSharedPreferences("user credentials", Context.MODE_PRIVATE).getString("userMessageServerUrl", null);
         xmppServiceConnection = new XMPPServiceConnection(getBaseContext(), messageDBAddress);
         // Set up the login form.
         mEmailView = (TextView) findViewById(R.id.email);
@@ -264,8 +265,8 @@ public class LoginActivity extends Activity {
 
             try {
                 if (xmppServiceConnection.setUsernamePasswordAndLogin(URLEncoder.encode(mEmail, "UTF-8"), mPassword)) {
-                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("userId", URLEncoder.encode(mEmail, "UTF-8")).apply();
-                    PreferenceManager.getDefaultSharedPreferences(getBaseContext()).edit().putString("password", mPassword).apply();
+                    getSharedPreferences("user credentials", Context.MODE_PRIVATE).edit().putString("userId", URLEncoder.encode(mEmail, "UTF-8")).apply();
+                    getSharedPreferences("user credentials", Context.MODE_PRIVATE).edit().putString("password", mPassword).apply();
                     loggedIn = true;
                 }
             } catch (UnsupportedEncodingException e) {

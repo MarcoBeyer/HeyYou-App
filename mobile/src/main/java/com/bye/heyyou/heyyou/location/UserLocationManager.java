@@ -1,8 +1,11 @@
 package com.bye.heyyou.heyyou.location;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.bye.heyyou.heyyou.database.LocationExternalDatabase;
@@ -30,8 +33,10 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
     private GoogleApiClient googleApiClient;
     private int intervalInMs = 120000;
     private LocationRequest mLocationRequest = LocationRequest.create();
+    private final Context context;
 
     public UserLocationManager(Context context, String userId, String databaseUrl) {
+        this.context = context;
         locationExternalDatabase = new LocationExternalDatabase(userId, databaseUrl);
         locationExternalDatabase.addObserver(this);
         googleApiClient = new GoogleApiClient.Builder(context)
@@ -87,8 +92,12 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         mLocationRequest.setInterval(intervalInMs);
         mLocationRequest.setFastestInterval(intervalInMs);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //TODO error dialog
+            return;
+        }
         fusedLocationProviderApi.requestLocationUpdates(googleApiClient, mLocationRequest, this);
-        if(fusedLocationProviderApi.getLastLocation(googleApiClient)!=null) {
+        if (fusedLocationProviderApi.getLastLocation(googleApiClient) != null) {
             onLocationChanged(fusedLocationProviderApi.getLastLocation(googleApiClient));
         }
     }
@@ -99,6 +108,10 @@ public class UserLocationManager extends Observable implements Observer, GoogleA
             fusedLocationProviderApi.removeLocationUpdates(googleApiClient, this);
             mLocationRequest.setInterval(intervalInMs);
             mLocationRequest.setFastestInterval(intervalInMs);
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                //TODO error dialog
+                return;
+            }
             fusedLocationProviderApi.requestLocationUpdates(googleApiClient, mLocationRequest, this);
         }
     }

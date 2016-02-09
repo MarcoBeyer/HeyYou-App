@@ -1,12 +1,16 @@
 package com.bye.heyyou.heyyou.fragments.location;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,8 +31,8 @@ import java.util.Observer;
 
 public class LocalUserFragment extends Fragment implements Observer {
     private static final String username_arg1 = "username";
-    private static final String locationDb_arg2 = "locationDb";
-
+    private static final String locationDb_arg2 = "locationSocketUrl";
+    private static final byte HEY_YOU_LOCATION_GRANTED = 1;
     private String myUserID;
     private String locationServerURL;
     private View localUserView;
@@ -99,7 +103,34 @@ public class LocalUserFragment extends Fragment implements Observer {
     private void startDisplayingLocalUsers(){
         LinearLayout localSearchResultListView = (LinearLayout) localUserView.findViewById(R.id.localSearchViewContainer);
         localSearchResultListView.setVisibility(View.VISIBLE);
-        userLocationManager.startGettingLocation();
+        if (ActivityCompat.checkSelfPermission(this.getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getActivity().getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this.getActivity(),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    HEY_YOU_LOCATION_GRANTED);
+            ActivityCompat.requestPermissions(this.getActivity(),
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    HEY_YOU_LOCATION_GRANTED);
+
+        } else {
+            userLocationManager.startGettingLocation();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case HEY_YOU_LOCATION_GRANTED: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    userLocationManager.startGettingLocation();
+
+                } else {
+                    ((Switch) localUserView.findViewById(R.id.localSearchSwitch)).setChecked(false);
+                }
+            }
+        }
     }
 
     private void stopDisplayingLocalUsers(){

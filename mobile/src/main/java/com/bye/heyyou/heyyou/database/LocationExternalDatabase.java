@@ -3,7 +3,6 @@ package com.bye.heyyou.heyyou.database;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.bye.heyyou.heyyou.exceptions.GetLocalUsersFailedException;
 import com.bye.heyyou.heyyou.location.UserLocation;
 import com.bye.heyyou.heyyou.user.LocalUser;
 
@@ -21,15 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LocationExternalDatabase extends ExternalDatabase {
-    private String databaseURL;
+    private String locationSocketURL;
     private String myUserID;
     private List<LocalUser>localUsers= new ArrayList<>();
     private GetLocalUsersTask getLocalUsersTask=new GetLocalUsersTask();
     private Socket socket;
 
-    public LocationExternalDatabase(String myUserID,String databaseURL) {
+    public LocationExternalDatabase(String myUserID,String locationSocketURL) {
         this.myUserID = myUserID;
-        this.databaseURL = databaseURL;
+        this.locationSocketURL = locationSocketURL;
     }
 
     public List<LocalUser> getLocalUsers() {
@@ -58,10 +57,9 @@ public class LocationExternalDatabase extends ExternalDatabase {
 
 
     private class GetLocalUsersTask extends AsyncTask<UserLocation, Void, List<LocalUser>> {
-
         private List<LocalUser> getLocalUsers(UserLocation userLocation) throws IOException {
-            Log.d("LocationExternalDB", "new Location sent to " + databaseURL);
-            String ip = databaseURL;  //localhost
+            Log.d("LocationExternalDB", "new Location sent to " + locationSocketURL);
+            String ip = locationSocketURL;  //localhost
             int port = 8489;
 
             if(socket==null || !socket.isConnected() || socket.isClosed()) {

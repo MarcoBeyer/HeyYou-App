@@ -14,7 +14,6 @@ import com.bye.heyyou.heyyou.xmpp.connection.HeyYouConnection;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.impl.JidCreate;
-import org.jxmpp.jid.util.JidUtil;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 public class XMPPService extends Service {

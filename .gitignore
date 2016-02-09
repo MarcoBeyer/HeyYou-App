@@ -2,3 +2,4 @@
 /.gradle
 local.properties
 build/intermediates/dex-cache/cache.xml
+build/generated/

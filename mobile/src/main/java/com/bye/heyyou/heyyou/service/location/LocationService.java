@@ -7,8 +7,6 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 
-
-
 import com.bye.heyyou.heyyou.location.UserLocationManager;
 import com.bye.heyyou.heyyou.user.LocalUser;
 import java.util.List;
@@ -33,10 +31,9 @@ public class LocationService extends Service implements Observer {
         return false;
     }
 
-
     private String getUserID() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
-        return settings.getString("userID", null);
+        return settings.getString("userID", "");
     }
 
     private void setUserID(String userID) {
@@ -46,15 +43,15 @@ public class LocationService extends Service implements Observer {
         editor.apply();
     }
 
-    private String getDbAddress() {
+    private String getLocationSocketAddress() {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
-        return settings.getString("locationDbAddress", null);
+        return settings.getString("locationSocketUrl", "");
     }
 
-    private void setDbAddress(String dbAddress) {
+    private void setLocationSocketAddress(String dbAddress) {
         SharedPreferences settings = getSharedPreferences("user credentials", MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putString("locationDbAddress", dbAddress);
+        editor.putString("locationSocketUrl", dbAddress);
         editor.apply();
     }
 
@@ -101,30 +98,22 @@ public class LocationService extends Service implements Observer {
 
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Bundle extras;
-
         if (intent != null) {
             extras = intent.getExtras();
-            if (extras != null) {
-
-                if (extras.getString("userID") != null) {
-                    if (!extras.getString("userID").equals(getUserID())) {
-                        setUserID(extras.getString("userID"));
-                    }
+            if (extras != null && extras.size()!=0) {
+                if (!getUserID().equals(extras.getString("userID"))) {
+                    setUserID(extras.getString("userID"));
                 }
-
-                if (extras.getString("dbAddress") != null) {
-                    if (!extras.getString("dbAddress").equals(getDbAddress())) {
-                        setDbAddress(extras.getString("dbAddress"));
-                    }
+                if (!getLocationSocketAddress().equals(extras.getString("locationSocketUrl"))) {
+                    setLocationSocketAddress(extras.getString("locationSocketUrl"));
                 }
             }
 
         }
-        locationManager=new UserLocationManager(getBaseContext(),getUserID(),getDbAddress());
+        locationManager=new UserLocationManager(getBaseContext(),getUserID(), getLocationSocketAddress());
         if(getTrackUser()) {
             locationManager.startGettingLocation();
         }

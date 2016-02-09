@@ -15,7 +15,7 @@ public class MainActivity extends FragmentActivity {
     private Intent chatIntent;
 
     private String myUserID;
-    private String locationServerURL = "db.heyyouapp.net";
+    private String locationServerURL = "heyyouapp.net";
     private String userMessageServerUrl = "chat.heyyouapp.net";
     private String password;
     private ChatOverviewFragment chatOverview;
@@ -25,7 +25,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(!PreferenceManager.getDefaultSharedPreferences(this).contains("userId")||!PreferenceManager.getDefaultSharedPreferences(this).contains("password")){
+        if(!getSharedPreferences("user credentials",MODE_PRIVATE).contains("userId")||!getSharedPreferences("user credentials",MODE_PRIVATE).contains("password")){
             startActivityForResult(new Intent(this, LoginActivity.class), 2);
         }
     }
@@ -40,11 +40,10 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        PreferenceManager.getDefaultSharedPreferences(this).edit().putString("userMessageServerUrl",userMessageServerUrl)
-                .putString("userLocationServerUrl", locationServerURL).apply();
-        myUserID = PreferenceManager.getDefaultSharedPreferences(this).getString("userId", "user123456");
-        password = PreferenceManager.getDefaultSharedPreferences(this).getString("password", null);
+        getSharedPreferences("user credentials",MODE_PRIVATE).edit().putString("userMessageServerUrl",userMessageServerUrl)
+                .putString("locationSocketUrl", locationServerURL).apply();
+        myUserID = getSharedPreferences("user credentials",MODE_PRIVATE).getString("userId", "");
+        password = getSharedPreferences("user credentials",MODE_PRIVATE).getString("password", "");
         setContentView(R.layout.activity_main);
 
         chatIntent= new Intent(this,ChatActivity.class);
@@ -100,7 +99,7 @@ public class MainActivity extends FragmentActivity {
         if (requestCode == LOGIN_REQUEST) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                myUserID = PreferenceManager.getDefaultSharedPreferences(this).getString("userId", "user123456");
+                myUserID = getSharedPreferences("user credentials",MODE_PRIVATE).getString("userId", "user123456");
                 chatOverview=ChatOverviewFragment.newInstance(myUserID,password,userMessageServerUrl);
                 localUserFragment = LocalUserFragment.newInstance(myUserID,locationServerURL);
                 getFragmentManager().beginTransaction()

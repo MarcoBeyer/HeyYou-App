@@ -7,9 +7,6 @@ import com.bye.heyyou.heyyou.user.LocalUser;
 
 import java.util.List;
 
-/**
- * Created by bea on 28.10.2014.
- */
 public class LocationExternalDatabaseTest extends ActivityInstrumentationTestCase2<MainActivity> {
 
     private LocationExternalDatabase db;

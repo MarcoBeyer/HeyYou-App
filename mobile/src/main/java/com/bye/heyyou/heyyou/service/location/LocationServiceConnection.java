@@ -28,11 +28,11 @@ public class LocationServiceConnection extends Observable {
     private Intent newService;
     private boolean mBroadcastRegistered;
 
-    public LocationServiceConnection(final Context context, final String username, final String dbAddress) {
+    public LocationServiceConnection(final Context context, final String username, final String locationSocketAddress) {
         this.context=context;
         newService = new Intent(context, LocationService.class);
         newService.putExtra("userID",username);
-        newService.putExtra("dbAddress",dbAddress);
+        newService.putExtra("locationSocketUrl",locationSocketAddress);
         context.startService(newService);
         context.bindService(newService, mConnection, Context.BIND_AUTO_CREATE);
         register();
