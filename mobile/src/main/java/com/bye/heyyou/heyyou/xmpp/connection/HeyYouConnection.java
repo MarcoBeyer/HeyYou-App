@@ -305,7 +305,8 @@ public class HeyYouConnection {
             }
             Chat newChat;
             try {
-                newChat = chatmanager.createChat( JidCreate.from(newMessage.getToUserId(), host, "").asEntityFullJidIfPossible(), new newUserMessageListener(context));
+                newChat = chatmanager.createChat( JidCreate.from(newMessage.getToUserId(), host, "HeyYouApp").asEntityFullJidIfPossible(), new newUserMessageListener(context));
+                Log.v("HeyYouConnection","Chat created");
             } catch (XmppStringprepException e) {
                 e.printStackTrace();
                 return;
